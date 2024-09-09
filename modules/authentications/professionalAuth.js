@@ -9,6 +9,11 @@ const socket_auth = async (socket, next) => {
   try {
     const token_obj = cookie.parse(socket.handshake.headers.cookie);
     // console.log(token_obj)
+
+    if (!token_obj) {
+      return next(new Error('Authentication error: Cookies not found'));
+    }
+
     const token = token_obj.jwt_WORKER;
     const verifyUser = jwt.verify(token, process.env.SECRET_TOKEN_KEY);
 

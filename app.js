@@ -11,7 +11,7 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs/dist/bcrypt");
 const URL = require("url");
-const port = process.env.PORT || 80;
+const port = process.env.PORT ;
 const fs = require("fs");
 
 // console.log(process.env.ENABLE_SOCKET_SITE)
@@ -28,10 +28,25 @@ const io = require("socket.io")(http, {
         }
       } ,
     methods: ["GET", "POST"],
-    allowedHeaders: ["my-custom-header"], // Optional: Customize headers if needed
-    credentials: true // Allow credentials (e.g., cookies, authorization headers)
-  }
+    credentials: true, // Allow credentials (e.g., cookies, authorization headers)
+  },
+  transports: ['websocket', 'polling'],
+  enabledTransports: ['ws', 'wss'],
+  wsPort: 8080,
 });
+
+
+// const io = require("socket.io")(http, {
+//   maxHttpBufferSize: 1e7 ,// Example: Set limit to 10 MB
+//   cors: {
+//     origin: "https://sanctum.ocimum.in",
+//     methods: ["GET", "POST"],
+//     credentials: true
+//   },
+//   transports: ['websocket', 'polling'],
+//   enabledTransports: ['ws', 'wss'],
+//   wsPort: 8080,
+// });
 
 
 //============= declearing modules ============//
@@ -40,7 +55,13 @@ const { Users } = require("./modules/schemas/user_sch");
 //============= declearing modules ============//
 
 //============= middleware ============//
-app.use(cors());
+
+const corsOptions = {
+  origin: 'https://sanctum.ocimum.in',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true
+};
+app.use(cors(corsOptions));
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
 app.use(cookieParser());
