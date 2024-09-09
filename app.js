@@ -237,6 +237,50 @@ io.on("connection", async (socket) => {
             console.log(error)
           }
         })
+
+        socket.on("last-appointment-data" , async appointmentObject=>{
+          try {
+            const verifyUser = jwt.verify(
+              appointmentObject.patient_token_id,
+              process.env.SECRET_TOKEN_KEY
+            );
+
+            let user = await Users.findOne({ _id: verifyUser._id });
+
+            let appointmentList = []
+
+            user.appointments.forEach(element=>{
+
+
+                console.log(element)
+              let doctorIdObj
+              if (element.doctor_token_id) {
+                doctorIdObj = jwt.verify(
+                  element.doctor_token_id,
+                  process.env.SECRET_TOKEN_KEY
+                );
+              }
+              if (element.doctor_id || doctorIdObj._id == appointmentObject.doctor_id && element.status == "completed" ) {
+                appointmentList.push(element)
+              }
+            })
+
+            if (appointmentList.length > 0) {
+              const mostRecent = appointmentList.reduce((latest, current) => {
+                return new Date(current.application_date) > new Date(latest.application_date) ? current : latest;
+              });
+              socket.emit("last-appointment-document" , mostRecent , appointmentObject )
+            }else{
+              socket.emit("last-appointment-document" , undefined , appointmentObject )
+            }
+
+
+          } catch (error) {
+            console.log(error)
+          }
+
+
+        } )
     
     }
 })
